@@ -18,8 +18,8 @@ const typeDefs = gql`
   # case, the "courses" query returns an array of zero or more Course (defined above).
 
   type Query {
-    courses(topic: String): [Course]
     course(id: Int!): Course
+    courses(topic: String): [Course]
     coursesTitle(title: String!): [Course]
   }
 `;
@@ -56,7 +56,46 @@ const coursesData = [
 
 const resolvers = {
   Query: {
-    courses: () => coursesData,
+    // courses: () => coursesData,
+    course(parent, args, context, info) {
+      return coursesData.filter((course) => {
+        return course.id === args.id;
+      })[0];
+    },
+    courses(parent, args, context, info) {
+      if (args.topic) {
+        return coursesData.filter((course) => course.topic === args.topic);
+      } else {
+        return coursesData;
+      }
+    },
+    coursesTitle(parent, args, context, info) {
+      const lowerTitle = args.title.toLowerCase();
+
+      return coursesData.filter((course) =>
+        course.title.toLowerCase().includes(lowerTitle)
+      );
+    },
+  },
+  Mutation: {
+    updateTopic(_, args, context, info) {
+      const { id, topic } = args;
+
+      coursesData.forEach((course) => {
+        if (course.id === id) {
+          course.topic = topic;
+          return course;
+        }
+      });
+      console.log(coursesData);
+      return coursesData.filter((course) => course.id === id)[0];
+    },
+    course(_, args, context, info) {
+      const course = args.course;
+
+      coursesData.push(course);
+      return coursesData;
+    },
   },
 };
 
